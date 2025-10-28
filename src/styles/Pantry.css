@@ -1,0 +1,345 @@
+﻿.pantry-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+  display: flex;
+  flex-direction: column;
+}
+
+.pantry-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem 4rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.pantry-header {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 2rem;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+}
+
+.pantry-header h1 {
+  margin: 0 0 0.75rem;
+  font-size: 2rem;
+  color: #111827;
+}
+
+.pantry-header p {
+  margin: 0;
+  color: #4b5563;
+}
+
+.pantry-header__back {
+  background: transparent;
+  border: none;
+  color: #2563eb;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+}
+
+.pantry-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+}
+
+.pantry-form {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 2rem;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.pantry-form__title {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #111827;
+}
+
+.pantry-form__grid {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.pantry-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: #1f2937;
+}
+
+.pantry-form__field input,
+.pantry-form__field select {
+  border-radius: 14px;
+  border: 1px solid #d1d5db;
+  padding: 0.8rem 1rem;
+  font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pantry-form__field input:focus,
+.pantry-form__field select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.pantry-form__actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.pantry-form__submit {
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+  font-weight: 600;
+  padding: 0.85rem 1.4rem;
+  cursor: pointer;
+  box-shadow: 0 18px 35px rgba(16, 185, 129, 0.3);
+}
+
+.pantry-form__reset {
+  border-radius: 14px;
+  border: 1px solid #d1d5db;
+  padding: 0.85rem 1.4rem;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.pantry-list-wrapper {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 2rem;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+}
+
+.pantry-section-title {
+  margin: 0 0 1rem;
+  font-size: 1.4rem;
+  color: #111827;
+}
+
+.pantry-error {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #b91c1c;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.pantry-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pantry-list__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8fafc;
+  border-radius: 18px;
+  padding: 1.1rem 1.4rem;
+}
+
+.pantry-list__item h3 {
+  margin: 0 0 0.3rem;
+  color: #111827;
+}
+
+.pantry-list__item p {
+  margin: 0;
+  color: #64748b;
+}
+
+.pantry-list__actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.pantry-list__actions button {
+  border: none;
+  border-radius: 12px;
+  padding: 0.55rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pantry-list__actions button:first-of-type {
+  background: #e0e7ff;
+  color: #1e3a8a;
+}
+
+.pantry-list__delete {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.pantry-empty {
+  color: #64748b;
+}
+
+.pantry-ai {
+  margin-top: 1.5rem;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: #f8fafc;
+  border-radius: 24px;
+  padding: 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.pantry-ai__content h2 {
+  margin: 0 0 0.75rem;
+}
+
+.pantry-ai__content p {
+  margin: 0;
+  color: #cbd5f5;
+}
+
+.pantry-ai__button {
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #fb923c, #f97316);
+  color: #ffffff;
+  font-weight: 600;
+  padding: 0.9rem 1.8rem;
+  cursor: pointer;
+  box-shadow: 0 20px 45px rgba(249, 115, 22, 0.3);
+}
+
+.pantry-loader {
+  text-align: center;
+  padding: 2rem;
+  color: #2563eb;
+  font-weight: 600;
+}
+
+@media (max-width: 700px) {
+  .pantry-content {
+    padding: 2rem 1.25rem 3rem;
+  }
+
+  .pantry-form__actions {
+    flex-direction: column;
+  }
+
+  .pantry-list__item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .pantry-ai {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.pantry-recommendations {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 2rem;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+}
+
+.pantry-recommendations__list {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.pantry-recommendations__item {
+  background: #f8fafc;
+  border-radius: 18px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.pantry-recommendations__item h3 {
+  margin: 0;
+  color: #111827;
+}
+
+.pantry-recommendations__item p {
+  margin: 0;
+  color: #475569;
+}
+
+.pantry-recommendations__missing {
+  color: #ef4444;
+}
+
+
+.pantry-recommendations__item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 35px rgba(15, 23, 42, 0.12);
+}
+
+.pantry-recommendations__item--disabled {
+  cursor: default;
+  box-shadow: none;
+}
+
+.pantry-recommendations__item--disabled:hover {
+  transform: none;
+}
+
+.pantry-recommendations__button {
+  margin-top: 0.75rem;
+  align-self: flex-start;
+  padding: 0.6rem 1.1rem;
+  border-radius: 12px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pantry-recommendations__button--primary {
+  border: none;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  box-shadow: 0 15px 30px rgba(37, 99, 235, 0.25);
+}
+
+.pantry-recommendations__button--secondary {
+  background-color: #ffffff;
+  color: #1f2937;
+}
+
+.pantry-recommendations__button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.pantry-recommendations__description {
+  margin: 0.35rem 0;
+  color: #475569;
+}

@@ -21,15 +21,16 @@ export const LoginForm: React.FC = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setLoading(true);
     setError(null);
     setMessage(null);
@@ -73,16 +74,16 @@ export const LoginForm: React.FC = () => {
         <div className="auth-main">
           <header>
             <div className="auth-brand">AI Recipes</div>
-            <h1 className="auth-title">Iniciar sesión</h1>
+            <h1 className="auth-title">Iniciar sesion</h1>
             <p className="auth-subtitle">
-              Descubre qué puedes cocinar con lo que ya tienes en casa.
+              Descubre que puedes cocinar con lo que ya tienes en casa.
             </p>
           </header>
 
           <form className="auth-form" onSubmit={handleSubmit}>
             <div className="auth-field">
               <label className="auth-label" htmlFor="username">
-                Usuario o correo electrónico
+                Usuario o correo electronico
               </label>
               <input
                 id="username"
@@ -99,7 +100,7 @@ export const LoginForm: React.FC = () => {
 
             <div className="auth-field">
               <label className="auth-label" htmlFor="password">
-                Contraseña
+                Contrasena
               </label>
               <div style={{ position: "relative" }}>
                 <input
@@ -107,7 +108,7 @@ export const LoginForm: React.FC = () => {
                   className="auth-input"
                   type={showPassword ? "text" : "password"}
                   name="password"
-                  placeholder="Ingresa tu contraseña"
+                  placeholder="Ingresa tu contrasena"
                   value={formData.password}
                   onChange={handleChange}
                   autoComplete="current-password"
@@ -140,10 +141,10 @@ export const LoginForm: React.FC = () => {
                   checked={rememberMe}
                   onChange={(event) => setRememberMe(event.target.checked)}
                 />
-                Recuérdame
+                Recuerdame
               </label>
               <a className="auth-link" href="#">
-                ¿Olvidaste tu contraseña?
+                Olvidaste tu contrasena?
               </a>
             </div>
 
@@ -153,7 +154,7 @@ export const LoginForm: React.FC = () => {
             )}
 
             <button className="auth-submit" type="submit" disabled={loading}>
-              {loading ? "Ingresando..." : "Iniciar sesión"}
+              {loading ? "Ingresando..." : "Iniciar sesion"}
             </button>
           </form>
 
@@ -161,19 +162,19 @@ export const LoginForm: React.FC = () => {
 
           <div className="auth-socials">
             <button type="button" className="auth-social-btn">
-              <span className="auth-social-icon">🟦</span>
+              <span className="auth-social-icon">G</span>
               Continuar con Google
             </button>
             <button type="button" className="auth-social-btn">
-              <span className="auth-social-icon">ⓕ</span>
+              <span className="auth-social-icon">f</span>
               Continuar con Facebook
             </button>
           </div>
 
           <div className="auth-footer">
-            ¿Aún no tienes cuenta?{" "}
+            Aun no tienes cuenta?{" "}
             <Link className="auth-link" to="/register">
-              Regístrate aquí
+              Registrate aqui
             </Link>
           </div>
         </div>
