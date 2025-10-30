@@ -1,6 +1,7 @@
 import "../../styles/Auth.css";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { makeApiUrl } from "../../config/api";
 
 interface RegisterData {
   username: string;
@@ -36,7 +37,7 @@ export const RegisterForm: React.FC = () => {
     setMessage(null);
 
     try {
-      const response = await fetch("http://localhost:8088/api/auth/register", {
+      const response = await fetch(makeApiUrl("/api/auth/register"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -191,4 +192,3 @@ export const RegisterForm: React.FC = () => {
     </div>
   );
 };
-

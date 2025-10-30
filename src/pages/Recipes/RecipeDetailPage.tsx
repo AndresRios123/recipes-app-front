@@ -1,6 +1,7 @@
-﻿import "../../styles/RecipeDetail.css";
+import "../../styles/RecipeDetail.css";
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { makeApiUrl } from "../../config/api";
 import { HomeNavbar } from "../../components/home/HomeNavbar";
 import type { RecipeDetail } from "../../types/recipes";
 
@@ -34,7 +35,7 @@ export const RecipeDetailPage: React.FC = () => {
       }
 
       try {
-        const response = await fetch(`http://localhost:8088/api/recipes/${id}`, {
+        const response = await fetch(makeApiUrl(`/api/recipes/${id}`), {
           credentials: "include",
         });
 
@@ -58,7 +59,7 @@ export const RecipeDetailPage: React.FC = () => {
 
     const loadProfileName = async () => {
       try {
-        const response = await fetch("http://localhost:8088/api/auth/profile", {
+        const response = await fetch(makeApiUrl("/api/auth/profile"), {
           credentials: "include",
         });
         if (response.ok) {
@@ -88,7 +89,7 @@ export const RecipeDetailPage: React.FC = () => {
   }, [recipe]);
 
   const handleLogout = async () => {
-    await fetch("http://localhost:8088/api/auth/logout", {
+    await fetch(makeApiUrl("/api/auth/logout"), {
       method: "POST",
       credentials: "include",
     }).catch(() => undefined);

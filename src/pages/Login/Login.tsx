@@ -1,6 +1,7 @@
 import "../../styles/Auth.css";
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { makeApiUrl } from "../../config/api";
 
 interface LoginData {
   username: string;
@@ -36,7 +37,7 @@ export const LoginForm: React.FC = () => {
     setMessage(null);
 
     try {
-      const response = await fetch("http://localhost:8088/api/auth/login", {
+      const response = await fetch(makeApiUrl("/api/auth/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

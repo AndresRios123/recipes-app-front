@@ -1,4 +1,5 @@
 import "../../styles/Pantry.css";
+import { makeApiUrl } from "../../config/api";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { HomeNavbar } from "../../components/home/HomeNavbar";
@@ -67,7 +68,7 @@ export const PantryPage: React.FC = () => {
     setLoadingRecommendations(true);
     setRecommendationsError(null);
     try {
-      const response = await fetch("http://localhost:8088/api/recommendations", {
+      const response = await fetch(makeApiUrl("/api/recommendations"), {
         credentials: "include",
       });
 
@@ -103,9 +104,9 @@ export const PantryPage: React.FC = () => {
     setPantryError(null);
     try {
       const [profileRes, pantryRes, ingredientsRes] = await Promise.all([
-        fetch("http://localhost:8088/api/auth/profile", { credentials: "include" }),
-        fetch("http://localhost:8088/api/pantry", { credentials: "include" }),
-        fetch("http://localhost:8088/api/ingredients", { credentials: "include" }),
+        fetch(makeApiUrl("/api/auth/profile"), { credentials: "include" }),
+        fetch(makeApiUrl("/api/pantry"), { credentials: "include" }),
+        fetch(makeApiUrl("/api/ingredients"), { credentials: "include" }),
       ]);
 
       if (profileRes.status === 401) {
@@ -142,7 +143,7 @@ useEffect(() => {
   }, [loadInitialData]);
 
   const handleLogout = useCallback(async () => {
-    await fetch("http://localhost:8088/api/auth/logout", {
+    await fetch(makeApiUrl("/api/auth/logout"), {
       method: "POST",
       credentials: "include",
     }).catch(() => undefined);
@@ -159,7 +160,7 @@ useEffect(() => {
       setProcessing(true);
       setPantryError(null);
       try {
-        const response = await fetch("http://localhost:8088/api/pantry", {
+        const response = await fetch(makeApiUrl("/api/pantry"), {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
@@ -203,7 +204,7 @@ useEffect(() => {
       setProcessing(true);
       setPantryError(null);
       try {
-        const response = await fetch(`http://localhost:8088/api/pantry/${ingredientId}`, {
+        const response = await fetch(makeApiUrl(`/api/pantry/${ingredientId}`), {
           method: "DELETE",
           credentials: "include",
         });
@@ -270,7 +271,7 @@ useEffect(() => {
           ingredients: sanitizedIngredients,
         };
 
-        const response = await fetch("http://localhost:8088/api/recommendations/save", {
+        const response = await fetch(makeApiUrl("/api/recommendations/save"), {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },

@@ -1,6 +1,7 @@
-﻿import "../../styles/Home.css";
+import "../../styles/Home.css";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { makeApiUrl } from "../../config/api";
 import { HomeNavbar } from "../../components/home/HomeNavbar";
 import { HomeHero } from "../../components/home/HomeHero";
 import { HomeSearchBar } from "../../components/home/HomeSearchBar";
@@ -94,7 +95,7 @@ export const HomePage: React.FC = () => {
   const loadProfile = useCallback(async () => {
     setProfileLoading(true);
     try {
-      const response = await fetch("http://localhost:8088/api/auth/profile", {
+      const response = await fetch(makeApiUrl("/api/auth/profile"), {
         credentials: "include",
       });
 
@@ -120,7 +121,7 @@ export const HomePage: React.FC = () => {
   const loadRecommended = useCallback(async () => {
     setRecipesLoading(true);
     try {
-      const response = await fetch("http://localhost:8088/api/recipes", {
+      const response = await fetch(makeApiUrl("/api/recipes"), {
         credentials: "include",
       });
 
@@ -155,7 +156,7 @@ export const HomePage: React.FC = () => {
   }, [loadProfile, loadRecommended]);
 
   const handleLogout = useCallback(async () => {
-    await fetch("http://localhost:8088/api/auth/logout", {
+    await fetch(makeApiUrl("/api/auth/logout"), {
       method: "POST",
       credentials: "include",
     }).catch(() => undefined);
@@ -211,3 +212,4 @@ export const HomePage: React.FC = () => {
     </div>
   );
 };
+
