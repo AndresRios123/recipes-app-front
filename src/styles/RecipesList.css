@@ -1,0 +1,120 @@
+.recipes-page {
+  min-height: 100vh;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.recipes-page__content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+}
+
+.recipes-page__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.recipes-page__eyebrow {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+}
+
+.recipes-page__header h1 {
+  margin: 0;
+  font-size: 1.75rem;
+}
+
+.recipes-page__header p {
+  margin: 0.5rem 0 0;
+  color: #475569;
+}
+
+.recipes-page__new {
+  background: linear-gradient(135deg, #0ea5e9, #2563eb);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.recipes-page__new:hover {
+  opacity: 0.9;
+}
+
+.recipes-page__status {
+  background: #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  color: #1e293b;
+  margin-top: 1rem;
+}
+
+.recipes-page__status--error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.recipes-page__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.recipes-card {
+  background: #fff;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 15px 35px rgba(15, 23, 42, 0.08);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.recipes-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
+}
+
+.recipes-card__image {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+}
+
+.recipes-card__body {
+  padding: 1rem 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.recipes-card__meta {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.recipes-card__description {
+  color: #475569;
+  font-size: 0.95rem;
+  margin: 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

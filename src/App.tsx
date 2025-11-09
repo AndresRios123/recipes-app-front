@@ -5,6 +5,7 @@ import { RegisterForm } from "./pages/Register/Register";
 import { HomePage } from "./pages/Home/HomePage";
 import { PantryPage } from "./pages/Pantry/PantryPage";
 import { RecipeDetailPage } from "./pages/Recipes/RecipeDetailPage";
+import { RecipesPage } from "./pages/Recipes/RecipesPage";
 
 function App() {
   return (
@@ -12,8 +13,9 @@ function App() {
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<LoginForm />} />
       <Route path="/register" element={<RegisterForm />} />
-            <Route path="/home" element={<HomePage />} />
+      <Route path="/home" element={<HomePage />} />
       <Route path="/pantry" element={<PantryPage />} />
+      <Route path="/recipes" element={<RecipesPage />} />
       <Route path="/recipes/:id" element={<RecipeDetailPage />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
