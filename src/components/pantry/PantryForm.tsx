@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import type { IngredientOption, PantryFormValues } from "../../types/pantry";
 
 interface PantryFormProps {
@@ -12,6 +12,19 @@ interface PantryFormProps {
 /**
  * Formulario controlado para agregar/actualizar ingredientes en la despensa.
  */
+const BASE_UNIT_OPTIONS = [
+  "g",
+  "kg",
+  "ml",
+  "l",
+  "taza",
+  "cucharada",
+  "cucharadita",
+  "pieza",
+  "unidad",
+  "porción",
+];
+
 export const PantryForm: React.FC<PantryFormProps> = ({
   ingredients,
   initialValues,
@@ -25,7 +38,9 @@ export const PantryForm: React.FC<PantryFormProps> = ({
     setFormValues(initialValues);
   }, [initialValues]);
 
-  const handleFieldChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFieldChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = event.target;
     setFormValues((prev) => ({
       ...prev,
@@ -35,7 +50,9 @@ export const PantryForm: React.FC<PantryFormProps> = ({
 
   const handleIngredientChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
-    const match = ingredients.find((ingredient) => ingredient.name.toLowerCase() === value.toLowerCase());
+    const match = ingredients.find(
+      (ingredient) => ingredient.name.toLowerCase() === value.toLowerCase()
+    );
     setFormValues((prev) => ({
       ...prev,
       ingredientName: value,
@@ -50,6 +67,13 @@ export const PantryForm: React.FC<PantryFormProps> = ({
     }
     onSubmit(formValues);
   };
+
+  const unitOptions = useMemo(() => {
+    if (!formValues.unit || BASE_UNIT_OPTIONS.includes(formValues.unit)) {
+      return BASE_UNIT_OPTIONS;
+    }
+    return [formValues.unit, ...BASE_UNIT_OPTIONS];
+  }, [formValues.unit]);
 
   return (
     <form className="pantry-form" onSubmit={handleSubmit}>
@@ -89,14 +113,16 @@ export const PantryForm: React.FC<PantryFormProps> = ({
 
         <label className="pantry-form__field">
           <span>Unidad</span>
-          <input
-            type="text"
-            name="unit"
-            value={formValues.unit}
-            onChange={handleFieldChange}
-            placeholder="gramos, piezas, ml..."
-            required
-          />
+          <select name="unit" value={formValues.unit} onChange={handleFieldChange} required>
+            <option value="" disabled>
+              Selecciona una unidad
+            </option>
+            {unitOptions.map((unit) => (
+              <option key={unit} value={unit}>
+                {unit}
+              </option>
+            ))}
+          </select>
         </label>
       </div>
 
