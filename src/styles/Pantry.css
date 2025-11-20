@@ -343,3 +343,211 @@
   margin: 0.35rem 0;
   color: #475569;
 }
+
+
+
+/* Layout helpers for new pantry structure */
+.pantry-layout {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem 4rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.pantry-layout__header {
+  text-align: center;
+}
+
+.pantry-layout__header h1 {
+  margin: 0;
+  font-size: 2.2rem;
+  color: #111827;
+}
+
+.pantry-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+}
+
+.pantry-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 2rem;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.pantry-card__subtitle {
+  margin: 0;
+  color: #4b5563;
+}
+
+.pantry-card--form .pantry-form {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+.pantry-card--list {
+  gap: 1rem;
+}
+
+.pantry-recommendations__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.pantry-suggest-btn {
+  border: none;
+  border-radius: 12px;
+  background: #111827;
+  color: #ffffff;
+  font-weight: 600;
+  padding: 0.65rem 1.5rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 15px 30px rgba(15, 23, 42, 0.2);
+}
+
+.pantry-suggest-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.pantry-suggest-btn__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.pantry-recommendations__item-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.pantry-recommendations__meta {
+  margin: 0.3rem 0 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.pantry-recommendations__item-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pantry-chip-button {
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  padding: 0.35rem 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #111827;
+}
+
+.pantry-chip-button--primary {
+  border: none;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  box-shadow: 0 15px 30px rgba(37, 99, 235, 0.25);
+}
+
+.pantry-chip-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.pantry-ai-loader {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(37, 99, 235, 0.08);
+  color: #2563eb;
+  padding: 0.85rem 1.25rem;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.pantry-ai-loader__spinner {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  border: 3px solid rgba(37, 99, 235, 0.2);
+  border-top-color: #2563eb;
+  animation: pantry-ai-spin 0.8s linear infinite;
+}
+
+.pantry-ai-loader__text {
+  letter-spacing: 0.02em;
+}
+
+@keyframes pantry-ai-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+.pantry-card__title {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #111827;
+}
+
+
+.pantry-recommendations__title {
+  margin: 0;
+  font-weight: 600;
+  color: #111827;
+}
+
+.pantry-recommendations__instructions {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 0.6rem;
+}
+
+.pantry-recommendations__instructions-content {
+  margin-top: 0.75rem;
+  color: #475569;
+}
+
+.pantry-recommendations__instructions-content h4 {
+  margin: 0.35rem 0;
+  color: #111827;
+}
+
+.pantry-recommendations__instructions-content ul {
+  margin: 0 0 0.5rem 1.1rem;
+  padding: 0;
+  list-style: disc;
+}
+
+
+.pantry-card--form .pantry-form__title {
+  display: none;
+}
+

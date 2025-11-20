@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { HomeNavbar } from "../../components/home/HomeNavbar";
 import { PantryForm } from "../../components/pantry/PantryForm";
 import { PantryList } from "../../components/pantry/PantryList";
-import { PantryAIBanner } from "../../components/pantry/PantryAIBanner";
 import { PantryRecommendations } from "../../components/pantry/PantryRecommendations";
 import type {
   IngredientOption,
@@ -124,13 +123,13 @@ export const PantryPage: React.FC = () => {
       const pantryData: PantryItem[] = await pantryRes.json();
       setItems(pantryData);
 
-      const ingredientsData = await ingredientsRes.json();
-      const options: IngredientOption[] = ingredientsData.map((ingredient: any) => ({
-        id: ingredient.id,
-        name: ingredient.name ?? ingredient.ingredientName ?? "Ingrediente",
-        categoryName: ingredient.category?.name ?? ingredient.category?.categoryName ?? "General",
-      }));
-      setIngredients(options);
+        const ingredientsData = await ingredientsRes.json();
+        const options: IngredientOption[] = ingredientsData.map((ingredient: any) => ({
+          id: ingredient.id,
+          name: ingredient.name ?? ingredient.ingredientName ?? "Ingrediente",
+          categoryName: ingredient.category?.name ?? ingredient.category?.categoryName ?? "General",
+        }));
+        setIngredients(options);
     } catch (err: any) {
       setPantryError(err.message ?? "Ocurrio un error al consultar la despensa");
     } finally {
@@ -138,7 +137,7 @@ export const PantryPage: React.FC = () => {
     }
   }, [navigate]);
 
-useEffect(() => {
+  useEffect(() => {
     loadInitialData();
   }, [loadInitialData]);
 
@@ -189,14 +188,13 @@ useEffect(() => {
           return [...filtered, saved];
         });
         resetForm();
-        await loadRecommendations();
       } catch (err: any) {
         setPantryError(err.message ?? "No se pudo guardar el ingrediente");
       } finally {
         setProcessing(false);
       }
     },
-    [loadRecommendations, navigate, resetForm]
+    [navigate, resetForm]
   );
 
   const handleDelete = useCallback(
@@ -221,14 +219,13 @@ useEffect(() => {
 
         setItems((prev) => prev.filter((item) => item.ingredientId !== ingredientId));
         resetForm();
-        await loadRecommendations();
       } catch (err: any) {
         setPantryError(err.message ?? "No se pudo eliminar el ingrediente");
       } finally {
         setProcessing(false);
       }
     },
-    [loadRecommendations, navigate, resetForm]
+    [navigate, resetForm]
   );
 
   const handleSelectItem = useCallback((item: PantryItem) => {
@@ -307,77 +304,66 @@ useEffect(() => {
             imageUrl: savedRecipe.imageUrl ?? current.imageUrl,
             ingredients: mappedIngredients,
           }));
-        } else {
-          await loadRecommendations();
         }
         navigate(`/recipes/${savedRecipe.id}`);
       } catch (err: any) {
         setRecommendationsError(err.message ?? "No se pudo guardar la receta sugerida");
       }
     },
-    [loadRecommendations, navigate, updateRecommendation]
+    [navigate, updateRecommendation]
   );
 
   const handleRequestAI = useCallback(() => {
     loadRecommendations().catch(() => undefined);
   }, [loadRecommendations]);
 
-  const handleRecommendationSelect = useCallback(
-    (recommendation: Recommendation) => {
-      if (recommendation.recipeId !== null) {
-        navigate(`/recipes/${recommendation.recipeId}`);
-      }
-    },
-    [navigate]
-  );
-
   return (
-    <div className="pantry-page">
+    <div className="pantry-page pantry-page--minimal">
       <HomeNavbar username={profileName} onLogout={handleLogout} />
 
-      <main className="pantry-content">
-        <header className="pantry-header">
-          <button className="pantry-header__back" type="button" onClick={() => navigate(-1)}>
-            &larr; Volver
-          </button>
-          <h1>Mi despensa</h1>
-          <p>Organiza tus ingredientes para que la IA pueda sugerirte recetas a medida.</p>
-        </header>
+      <main className="pantry-layout">
+        <div className="pantry-layout__header">
+          <h1>Mi Despensa Inteligente</h1>
+        </div>
 
         {loading ? (
           <div className="pantry-loader">Cargando tu despensa...</div>
         ) : (
-          <div className="pantry-grid">
-            <PantryForm
-              ingredients={ingredients}
-              initialValues={formValues}
-              onSubmit={handleSubmit}
-              onReset={resetForm}
-              isSaving={processing}
+          <>
+            <div className="pantry-cards-grid">
+              <section className="pantry-card pantry-card--form">
+                <h2 className="pantry-card__title">Agregar Ingrediente</h2>
+                <PantryForm
+                  ingredients={ingredients}
+                  initialValues={formValues}
+                  onSubmit={handleSubmit}
+                  onReset={resetForm}
+                  isSaving={processing}
+                />
+              </section>
+
+              <section className="pantry-card pantry-card--list">
+                <h2 className="pantry-card__title">Mi Despensa</h2>
+                {pantryError && <div className="pantry-error">{pantryError}</div>}
+                <PantryList
+                  items={sortedItems}
+                  onSelect={handleSelectItem}
+                  onDelete={handleDelete}
+                  isProcessing={processing}
+                />
+              </section>
+            </div>
+
+            <PantryRecommendations
+              recommendations={recommendations}
+              isLoading={loadingRecommendations}
+              error={recommendationsError}
+              onSave={handleSaveRecommendation}
+              onRequest={handleRequestAI}
+              isRequesting={loadingRecommendations}
             />
-
-            <section className="pantry-list-wrapper">
-              <h2 className="pantry-section-title">Ingredientes guardados</h2>
-              {pantryError && <div className="pantry-error">{pantryError}</div>}
-              <PantryList
-                items={sortedItems}
-                onSelect={handleSelectItem}
-                onDelete={handleDelete}
-                isProcessing={processing}
-              />
-            </section>
-          </div>
+          </>
         )}
-
-        <PantryRecommendations
-          recommendations={recommendations}
-          isLoading={loadingRecommendations}
-          error={recommendationsError}
-          onSelect={handleRecommendationSelect}
-          onSave={handleSaveRecommendation}
-        />
-
-        <PantryAIBanner onRequestRecipes={handleRequestAI} />
       </main>
     </div>
   );

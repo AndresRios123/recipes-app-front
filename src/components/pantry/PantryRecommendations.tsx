@@ -5,8 +5,9 @@ interface PantryRecommendationsProps {
   recommendations: Recommendation[];
   isLoading: boolean;
   error: string | null;
-  onSelect: (recommendation: Recommendation) => void;
   onSave: (recommendation: Recommendation) => void;
+  onRequest?: () => void;
+  isRequesting?: boolean;
 }
 
 /**
@@ -16,8 +17,9 @@ export const PantryRecommendations: React.FC<PantryRecommendationsProps> = ({
   recommendations,
   isLoading,
   error,
-  onSelect,
   onSave,
+  onRequest,
+  isRequesting = false,
 }) => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -26,9 +28,35 @@ export const PantryRecommendations: React.FC<PantryRecommendationsProps> = ({
   };
 
   return (
-    <section className="pantry-recommendations">
-      <h2 className="pantry-section-title">Recomendaciones con IA</h2>
-      {isLoading && <p className="pantry-loader">Consultando a la IA...</p>}
+    <section className="pantry-card pantry-recommendations">
+      <div className="pantry-recommendations__header">
+        <div>
+          <h2 className="pantry-card__title">Recomendación de Recetas con IA</h2>
+          <p className="pantry-card__subtitle">
+            Sugiere recetas basadas en los ingredientes que tienes.
+          </p>
+        </div>
+        {onRequest && (
+          <button
+            type="button"
+            className="pantry-suggest-btn"
+            onClick={onRequest}
+            disabled={isRequesting}
+          >
+            <span className="pantry-suggest-btn__icon" aria-hidden="true">
+              AI
+            </span>
+            <span>{isRequesting ? "Generando..." : "Sugerir"}</span>
+          </button>
+        )}
+      </div>
+
+      {isLoading && (
+        <div className="pantry-ai-loader" aria-live="polite" aria-busy="true">
+          <span className="pantry-ai-loader__spinner" aria-hidden="true" />
+          <span className="pantry-ai-loader__text">Generando recetas</span>
+        </div>
+      )}
       {!isLoading && error && <p className="pantry-error">{error}</p>}
       {!isLoading && !error && recommendations.length === 0 && (
         <p className="pantry-empty">Agrega ingredientes para obtener sugerencias.</p>
@@ -47,15 +75,32 @@ export const PantryRecommendations: React.FC<PantryRecommendationsProps> = ({
 
             return (
               <li key={itemKey} className="pantry-recommendations__item">
-                <div>
-                  <h3>{recommendation.title}</h3>
-                  <p>Puntaje de coincidencia: {scorePercent}%</p>
+                <div className="pantry-recommendations__item-header">
+                  <div>
+                    <p className="pantry-recommendations__title">{recommendation.title}</p>
+                    <p className="pantry-recommendations__meta">
+                      {hasAll ? "Tienes todos los ingredientes" : "Faltan algunos ingredientes"} - Coincidencia {scorePercent}%
+                    </p>
+                  </div>
+                  <div className="pantry-recommendations__item-actions">
+                    <button
+                      type="button"
+                      className="pantry-chip-button pantry-chip-button--primary"
+                      onClick={() => onSave(recommendation)}
+                      disabled={isPersisted}
+                      title={isPersisted ? "Esta receta ya está guardada" : undefined}
+                    >
+                      {isPersisted ? "Guardada" : "Guardar"}
+                    </button>
+                    <button
+                      type="button"
+                      className="pantry-chip-button"
+                      onClick={() => toggleExpanded(itemKey)}
+                    >
+                      {isExpanded ? "Ver menos" : "Ver"}
+                    </button>
+                  </div>
                 </div>
-                <p className="pantry-recommendations__missing">
-                  {hasAll
-                    ? "Tienes todos los ingredientes"
-                    : `Falta: ${recommendation.missingIngredients.join(", ")}`}
-                </p>
 
                 {recommendation.description && (
                   <p className="pantry-recommendations__description">
@@ -63,64 +108,30 @@ export const PantryRecommendations: React.FC<PantryRecommendationsProps> = ({
                   </p>
                 )}
 
-                {(recommendation.instructions || recommendation.ingredients?.length) && (
+                {(recommendation.instructions || recommendation.ingredients?.length) && isExpanded && (
                   <div className="pantry-recommendations__instructions">
-                    <button
-                      type="button"
-                      className="pantry-recommendations__toggle"
-                      onClick={() => toggleExpanded(itemKey)}
-                    >
-                      {isExpanded ? "Ocultar detalles" : "Ver más"}
-                    </button>
-                    {isExpanded && (
-                      <div className="pantry-recommendations__instructions-content">
-                        {recommendation.ingredients && recommendation.ingredients.length > 0 && (
-                          <>
-                            <h4>Ingredientes sugeridos</h4>
-                            <ul>
-                              {recommendation.ingredients.map((ingredient, index) => (
-                                <li key={`${ingredient.name}-${index}`}>
-                                  {ingredient.quantity ?? ""} {ingredient.unit ?? ""} {ingredient.name}
-                                </li>
-                              ))}
-                            </ul>
-                          </>
-                        )}
-                        {recommendation.instructions && (
-                          <>
-                            <h4>Pasos sugeridos</h4>
-                            <p>{recommendation.instructions}</p>
-                          </>
-                        )}
-                      </div>
-                    )}
+                    <div className="pantry-recommendations__instructions-content">
+                      {recommendation.ingredients && recommendation.ingredients.length > 0 && (
+                        <>
+                          <h4>Ingredientes sugeridos</h4>
+                          <ul>
+                            {recommendation.ingredients.map((ingredient, index) => (
+                              <li key={`${ingredient.name}-${index}`}>
+                                {ingredient.quantity ?? ""} {ingredient.unit ?? ""} {ingredient.name}
+                              </li>
+                            ))}
+                          </ul>
+                        </>
+                      )}
+                      {recommendation.instructions && (
+                        <>
+                          <h4>Pasos sugeridos</h4>
+                          <p>{recommendation.instructions}</p>
+                        </>
+                      )}
+                    </div>
                   </div>
                 )}
-
-                <div className="pantry-recommendations__actions">
-                  <button
-                    type="button"
-                    className="pantry-recommendations__button pantry-recommendations__button--primary"
-                    onClick={() => onSave(recommendation)}
-                    disabled={isPersisted}
-                    title={isPersisted ? "Esta receta ya se guardó en tu recetario" : undefined}
-                  >
-                    {isPersisted ? "Receta guardada" : "Guardar receta"}
-                  </button>
-                  <button
-                    type="button"
-                    className="pantry-recommendations__button pantry-recommendations__button--secondary"
-                    onClick={() => onSelect(recommendation)}
-                    disabled={!isPersisted}
-                    title={
-                      isPersisted
-                        ? "Ver los detalles de esta receta"
-                        : "Guarda la receta para poder verla completa"
-                    }
-                  >
-                    Ver receta
-                  </button>
-                </div>
               </li>
             );
           })}
@@ -128,4 +139,4 @@ export const PantryRecommendations: React.FC<PantryRecommendationsProps> = ({
       )}
     </section>
   );
-}
+};
