@@ -59,7 +59,7 @@ export const PantryRecommendations: React.FC<PantryRecommendationsProps> = ({
       )}
       {!isLoading && error && <p className="pantry-error">{error}</p>}
       {!isLoading && !error && recommendations.length === 0 && (
-        <p className="pantry-empty">Agrega ingredientes para obtener sugerencias.</p>
+        <p className="pantry-empty">Aquí verás las recetas generadas. Presiona "Sugerir" para obtener ideas.</p>
       )}
       {!isLoading && !error && recommendations.length > 0 && (
         <ul className="pantry-recommendations__list">

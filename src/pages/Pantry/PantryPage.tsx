@@ -312,6 +312,7 @@ export const PantryPage: React.FC = () => {
   const loadInitialData = useCallback(async () => {
     setLoading(true);
     setPantryError(null);
+    setLoadingRecommendations(false);
     historyRef.current = new Stack<PantryItem[]>();
     recentRef.current = new SinglyLinkedList<string>();
     historyListRef.current = new SinglyLinkedList<{
