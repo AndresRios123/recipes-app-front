@@ -1,5 +1,6 @@
 import "../../styles/Auth.css";
 import React, { useState } from "react";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { Link, useNavigate } from "react-router-dom";
 import { makeApiUrl } from "../../config/api";
 
@@ -141,6 +142,7 @@ export const RegisterForm: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                   style={{
                     position: "absolute",
                     right: "1rem",
@@ -150,10 +152,10 @@ export const RegisterForm: React.FC = () => {
                     border: "none",
                     color: "#64748b",
                     cursor: "pointer",
-                    fontWeight: 600,
+                    fontSize: "1.2rem",
                   }}
                 >
-                  {showPassword ? "Ocultar" : "Ver"}
+                  {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
                 </button>
               </div>
             </div>
