@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { Recommendation } from "../types/pantry";
 
 interface RecommendationContextValue {
@@ -19,7 +19,17 @@ export const useRecommendationStore = (): RecommendationContextValue => {
 };
 
 export const RecommendationProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
-  const [recommendations, setRecommendationsState] = useState<Recommendation[]>([]);
+  const [recommendations, setRecommendationsState] = useState<Recommendation[]>(() => {
+    try {
+      const raw = localStorage.getItem("ai-recipes:recommendations");
+      if (raw) {
+        return JSON.parse(raw) as Recommendation[];
+      }
+    } catch {
+      /* ignore */
+    }
+    return [];
+  });
 
   const findByCacheId = (cacheId: string) =>
     recommendations.find((recommendation) => recommendation.cacheId === cacheId);
@@ -31,6 +41,14 @@ export const RecommendationProvider: React.FC<React.PropsWithChildren> = ({ chil
       )
     );
   };
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("ai-recipes:recommendations", JSON.stringify(recommendations));
+    } catch {
+      /* ignore */
+    }
+  }, [recommendations]);
 
   const value = useMemo<RecommendationContextValue>(
     () => ({
@@ -44,4 +62,3 @@ export const RecommendationProvider: React.FC<React.PropsWithChildren> = ({ chil
 
   return <RecommendationContext.Provider value={value}>{children}</RecommendationContext.Provider>;
 };
-

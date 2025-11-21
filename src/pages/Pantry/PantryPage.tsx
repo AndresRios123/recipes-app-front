@@ -66,9 +66,11 @@ export const PantryPage: React.FC = () => {
   const loadRecommendations = useCallback(async () => {
     setLoadingRecommendations(true);
     setRecommendationsError(null);
+    sessionStorage.setItem("ai-recipes:pending-recs", "true");
     try {
       const response = await fetch(makeApiUrl("/api/recommendations"), {
         credentials: "include",
+        keepalive: true,
       });
 
       if (response.status === 401) {
@@ -95,6 +97,7 @@ export const PantryPage: React.FC = () => {
       setRecommendationsError(err.message ?? "No se pudieron obtener las recomendaciones");
     } finally {
       setLoadingRecommendations(false);
+      sessionStorage.removeItem("ai-recipes:pending-recs");
     }
   }, [navigate]);
 
@@ -139,7 +142,11 @@ export const PantryPage: React.FC = () => {
 
   useEffect(() => {
     loadInitialData();
-  }, [loadInitialData]);
+    // Si había una solicitud pendiente antes de refrescar, vuelve a lanzarla.
+    if (sessionStorage.getItem("ai-recipes:pending-recs") === "true") {
+      loadRecommendations().catch(() => undefined);
+    }
+  }, [loadInitialData, loadRecommendations]);
 
   const handleLogout = useCallback(async () => {
     await fetch(makeApiUrl("/api/auth/logout"), {
