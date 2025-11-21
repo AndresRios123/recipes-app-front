@@ -105,7 +105,7 @@ export const LoginForm: React.FC = () => {
           <form className="auth-form" onSubmit={handleSubmit}>
             <div className="auth-field">
               <label className="auth-label" htmlFor="username">
-                Usuario o correo electronico
+                Usuario
               </label>
               <input
                 id="username"
