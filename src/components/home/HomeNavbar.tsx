@@ -21,9 +21,9 @@ export const HomeNavbar: React.FC<HomeNavbarProps> = ({ username, onLogout }) =>
             <Link to="/recipes">Recetas</Link>
           </div>
           <div className="home-navbar__actions">
-            <button className="home-navbar__button" type="button">
+            <Link className="home-navbar__button" to="/pantry">
               Ingresar ingredientes
-            </button>
+            </Link>
             <div className="home-navbar__user">
               <span role="img" aria-label="chef">
                 Chef
