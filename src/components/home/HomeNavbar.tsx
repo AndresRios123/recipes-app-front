@@ -19,7 +19,6 @@ export const HomeNavbar: React.FC<HomeNavbarProps> = ({ username, onLogout }) =>
             <Link to="/home">Inicio</Link>
             <Link to="/pantry">Mis ingredientes</Link>
             <Link to="/recipes">Recetas</Link>
-            <a href="#">Favoritos</a>
           </div>
           <div className="home-navbar__actions">
             <button className="home-navbar__button" type="button">
