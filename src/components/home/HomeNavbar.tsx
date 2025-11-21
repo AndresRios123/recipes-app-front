@@ -24,15 +24,15 @@ export const HomeNavbar: React.FC<HomeNavbarProps> = ({ username, onLogout }) =>
             <Link className="home-navbar__button" to="/pantry">
               Ingresar ingredientes
             </Link>
-            <div className="home-navbar__user">
+            <Link to="/profile" className="home-navbar__user">
               <span role="img" aria-label="chef">
                 Chef
               </span>
               <span>{username ?? "Invitado"}</span>
-              <button className="home-navbar__logout" onClick={onLogout}>
-                Salir
-              </button>
-            </div>
+            </Link>
+            <button className="home-navbar__logout" onClick={onLogout}>
+              Salir
+            </button>
           </div>
         </div>
       </div>
