@@ -1,5 +1,5 @@
 import "../../styles/Auth.css";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { makeApiUrl } from "../../config/api";
 
@@ -21,6 +21,30 @@ export const LoginForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // Si ya hay una sesion activa, evita mostrar el login y redirige al home.
+  useEffect(() => {
+    const storedUser = localStorage.getItem("ai-recipes:user") ?? sessionStorage.getItem("ai-recipes:user");
+    if (storedUser) {
+      navigate("/home", { replace: true });
+      return;
+    }
+
+    // Verifica contra el backend por si hay cookie de sesion.
+    const controller = new AbortController();
+    fetch(makeApiUrl("/api/auth/profile"), {
+      credentials: "include",
+      signal: controller.signal,
+    })
+      .then((res) => {
+        if (res.ok) {
+          navigate("/home", { replace: true });
+        }
+      })
+      .catch(() => undefined);
+
+    return () => controller.abort();
+  }, [navigate]);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -61,7 +85,7 @@ export const LoginForm: React.FC = () => {
       }
 
       setMessage(data?.message ?? "Inicio de sesion exitoso");
-      navigate("/home");
+      navigate("/home", { replace: true });
     } catch (err: any) {
       setError(err.message ?? "No se pudo iniciar sesion");
     } finally {
