@@ -63,14 +63,12 @@ export const PantryPage: React.FC = () => {
   const HISTORY_STORAGE_KEY = "ai-recipes:history-list";
   const RECOMMENDATIONS_KEY = "ai-recipes:recommendations";
   const HISTORY_LIMIT = 25;
-  const RECENT_LIMIT = 5;
   const HISTORY_ENTRIES_LIMIT = 10;
 
   const pollRef = useRef<number | null>(null);
   const jobQueueRef = useRef(new Queue<string>());
   const processingJobRef = useRef<string | null>(null);
   const historyRef = useRef(new Stack<PantryItem[]>());
-  const recentRef = useRef(new SinglyLinkedList<string>());
   const historyListRef = useRef(
     new SinglyLinkedList<{
       id: string;
@@ -91,7 +89,6 @@ export const PantryPage: React.FC = () => {
     }));
 
   const resetForm = useCallback(() => setFormValues(EMPTY_FORM), []);
-  const [recentIngredients, setRecentIngredients] = useState<string[]>([]);
 
   const pushHistory = (snapshot: PantryItem[]) => {
     historyRef.current.push(copyPantry(snapshot));
@@ -99,29 +96,6 @@ export const PantryPage: React.FC = () => {
     while (historyRef.current.size() > HISTORY_LIMIT) {
       historyRef.current.pop();
     }
-  };
-
-  const pushRecentIngredient = (name: string) => {
-    const normalized = name.trim();
-    if (!normalized) {
-      return;
-    }
-    recentRef.current.append(normalized);
-    if (recentRef.current.size() > RECENT_LIMIT) {
-      recentRef.current.removeAt(0);
-    }
-    const latest = recentRef.current.toArray();
-    setRecentIngredients([...latest].reverse());
-  };
-
-  const hydrateRecents = (pantry: PantryItem[]) => {
-    recentRef.current.clear();
-    const lastOnes = pantry.slice(-RECENT_LIMIT);
-    for (let i = 0; i < lastOnes.length; i++) {
-      recentRef.current.append(lastOnes[i].ingredientName);
-    }
-    const latest = recentRef.current.toArray();
-    setRecentIngredients([...latest].reverse());
   };
 
   const clearUserScopedCaches = (currentUser: string | undefined) => {
@@ -132,12 +106,10 @@ export const PantryPage: React.FC = () => {
     localStorage.removeItem(JOB_QUEUE_KEY);
     sessionStorage.removeItem(PENDING_RECS_KEY);
     historyListRef.current.clear();
-    recentRef.current.clear();
     historyRef.current = new Stack<PantryItem[]>();
     jobQueueRef.current = new Queue<string>();
     processingJobRef.current = null;
     setRecommendations([]);
-    setRecentIngredients([]);
     if (currentUser) {
       localStorage.setItem("ai-recipes:user", currentUser);
       sessionStorage.setItem("ai-recipes:user", currentUser);
@@ -335,7 +307,6 @@ export const PantryPage: React.FC = () => {
     setPantryError(null);
     setLoadingRecommendations(false);
     historyRef.current = new Stack<PantryItem[]>();
-    recentRef.current = new SinglyLinkedList<string>();
     historyListRef.current = new SinglyLinkedList<{
       id: string;
       createdAt: number;
@@ -373,7 +344,6 @@ export const PantryPage: React.FC = () => {
 
       const pantryData: PantryItem[] = await pantryRes.json();
       setItems(pantryData);
-      hydrateRecents(pantryData);
 
       const ingredientsData = await ingredientsRes.json();
       const options: IngredientOption[] = ingredientsData.map((ingredient: any) => ({
@@ -448,9 +418,7 @@ export const PantryPage: React.FC = () => {
         setItems((prev) => {
           const filtered = prev.filter((item) => item.ingredientId !== saved.ingredientId);
           pushHistory(prev);
-          const updated = [...filtered, saved];
-          pushRecentIngredient(saved.ingredientName);
-          return updated;
+          return [...filtered, saved];
         });
         resetForm();
       } catch (err: any) {
@@ -630,18 +598,6 @@ export const PantryPage: React.FC = () => {
                   onDelete={handleDelete}
                   isProcessing={processing}
                 />
-                {recentIngredients.length > 0 && (
-                  <div className="pantry-recent" style={{ marginTop: "1rem" }}>
-                    <h3 className="pantry-card__subtitle">Recientes</h3>
-                    <ul className="pantry-recent__list">
-                      {recentIngredients.map((name, idx) => (
-                        <li key={`${name}-${idx}`} className="pantry-recent__item">
-                          {name}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
               </section>
             </div>
 
