@@ -373,8 +373,6 @@ export const PantryPage: React.FC = () => {
     }
     if (pendingJob) {
       jobQueueRef.current.enqueue(pendingJob);
-    } else if (sessionStorage.getItem(PENDING_RECS_KEY) === "true") {
-      requestRecommendationsJob().catch(() => undefined);
     }
     persistQueue();
     processNextJob();
@@ -382,7 +380,7 @@ export const PantryPage: React.FC = () => {
     return () => {
       stopPolling();
     };
-  }, [PENDING_JOB_KEY, PENDING_RECS_KEY, JOB_QUEUE_KEY, loadInitialData, requestRecommendationsJob, processNextJob]);
+  }, [PENDING_JOB_KEY, JOB_QUEUE_KEY, loadInitialData, processNextJob]);
 
   const handleLogout = useCallback(async () => {
     await fetch(makeApiUrl("/api/auth/logout"), {
