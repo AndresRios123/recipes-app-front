@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { makeApiUrl } from "../../config/api";
 import { HomeNavbar } from "../../components/home/HomeNavbar";
 import { HomeHero } from "../../components/home/HomeHero";
-import { HomeSearchBar } from "../../components/home/HomeSearchBar";
 import { HomeRecommendations } from "../../components/home/HomeRecommendations";
 import { HomeHowItWorks } from "../../components/home/HomeHowItWorks";
 import type {
@@ -54,9 +53,6 @@ export const HomePage: React.FC = () => {
   const [recommendedRecipes, setRecommendedRecipes] = useState<RecommendedRecipe[]>([]);
   const [recipesLoading, setRecipesLoading] = useState(true);
   const [recipesError, setRecipesError] = useState<string | null>(null);
-
-  const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("Todas");
 
   const howItWorks: HowItWorksStep[] = useMemo(
     () => [
@@ -153,11 +149,6 @@ export const HomePage: React.FC = () => {
     navigate("/login");
   }, [navigate]);
 
-  const handleSearchSubmit = useCallback((event: React.FormEvent) => {
-    event.preventDefault();
-    // TODO: integrar la busqueda real en el backend.
-  }, []);
-
   const handleAddIngredients = useCallback(() => {
     navigate("/pantry");
   }, [navigate]);
@@ -182,14 +173,6 @@ export const HomePage: React.FC = () => {
       {!isLoading && !errorMessage && (
         <>
           <HomeHero username={profile?.username} onAddIngredients={handleAddIngredients} />
-
-          <HomeSearchBar
-            search={search}
-            category={categoryFilter}
-            onSearchChange={setSearch}
-            onCategoryChange={setCategoryFilter}
-            onSubmit={handleSearchSubmit}
-          />
 
           <HomeRecommendations recipes={recommendedRecipes} onSelect={handleSelectRecipe} />
           <HomeHowItWorks steps={howItWorks} />
