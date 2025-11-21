@@ -6,10 +6,8 @@ import { HomeNavbar } from "../../components/home/HomeNavbar";
 import { HomeHero } from "../../components/home/HomeHero";
 import { HomeSearchBar } from "../../components/home/HomeSearchBar";
 import { HomeRecommendations } from "../../components/home/HomeRecommendations";
-import { HomeCategories } from "../../components/home/HomeCategories";
 import { HomeHowItWorks } from "../../components/home/HomeHowItWorks";
 import type {
-  CategoryHighlight,
   HowItWorksStep,
   RecommendedRecipe,
 } from "../../types/home";
@@ -59,17 +57,6 @@ export const HomePage: React.FC = () => {
 
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("Todas");
-
-  const categoryHighlights: CategoryHighlight[] = useMemo(
-    () => [
-      { name: "Postres", icon: "POST" },
-      { name: "Platos rapidos", icon: "RAP" },
-      { name: "Saludables", icon: "SAL" },
-      { name: "Veganos", icon: "VEG" },
-      { name: "Desayunos", icon: "DES" },
-    ],
-    []
-  );
 
   const howItWorks: HowItWorksStep[] = useMemo(
     () => [
@@ -205,7 +192,6 @@ export const HomePage: React.FC = () => {
           />
 
           <HomeRecommendations recipes={recommendedRecipes} onSelect={handleSelectRecipe} />
-          <HomeCategories categories={categoryHighlights} />
           <HomeHowItWorks steps={howItWorks} />
         </>
       )}
