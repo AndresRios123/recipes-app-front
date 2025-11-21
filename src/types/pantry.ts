@@ -37,6 +37,15 @@ export interface Recommendation {
     name: string;
     quantity: number | null;
     unit: string | null;
-  }>;
+  }>; 
   cacheId?: string;
+}
+
+export type RecommendationJobStatus = "PENDING" | "DONE" | "ERROR";
+
+export interface RecommendationJobResponse {
+  jobId: string;
+  status: RecommendationJobStatus;
+  recommendations?: Recommendation[];
+  errorMessage?: string | null;
 }

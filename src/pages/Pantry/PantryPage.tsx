@@ -11,6 +11,7 @@ import type {
   PantryFormValues,
   PantryItem,
   Recommendation,
+  RecommendationJobResponse,
 } from "../../types/pantry";
 import { useRecommendationStore } from "../../context/RecommendationContext";
 
@@ -56,50 +57,119 @@ export const PantryPage: React.FC = () => {
   const [pantryError, setPantryError] = useState<string | null>(null);
   const [recommendationsError, setRecommendationsError] = useState<string | null>(null);
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
+  const [activeJobId, setActiveJobId] = useState<string | null>(
+    localStorage.getItem("ai-recipes:pending-job")
+  );
   const { recommendations, setRecommendations, updateRecommendation } = useRecommendationStore();
+
+  const PENDING_RECS_KEY = "ai-recipes:pending-recs";
+  const PENDING_JOB_KEY = "ai-recipes:pending-job";
+  const pollRef = React.useRef<number | null>(null);
 
   const sortedItems = useMemo(
     () => items.slice().sort((a, b) => a.ingredientName.localeCompare(b.ingredientName)),
     [items]
   );
 
-  const loadRecommendations = useCallback(async () => {
-    setLoadingRecommendations(true);
-    setRecommendationsError(null);
-    sessionStorage.setItem("ai-recipes:pending-recs", "true");
+  const stopPolling = () => {
+    if (pollRef.current !== null) {
+      window.clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+  };
+
+  const pollJobStatus = useCallback(async (jobId: string) => {
     try {
-      const response = await fetch(makeApiUrl("/api/recommendations"), {
+      const res = await fetch(makeApiUrl(`/api/recommendations/jobs/${jobId}`), {
         credentials: "include",
         keepalive: true,
       });
-
-      if (response.status === 401) {
+      if (res.status === 401) {
         navigate("/login");
         return;
       }
-
-      if (!response.ok) {
-        throw new Error("No se pudieron obtener las recomendaciones");
+      if (res.status === 404) {
+        stopPolling();
+        localStorage.removeItem(PENDING_JOB_KEY);
+        setActiveJobId(null);
+        return;
       }
-
-      const data: Recommendation[] = await response.json();
-      const timestamp = Date.now();
-      const withCacheIds = data.map((recommendation, index) => ({
-        ...recommendation,
-        cacheId:
-          recommendation.cacheId
-          ?? (recommendation.recipeId !== null
-            ? `stored-${recommendation.recipeId}`
-            : `ai-${timestamp}-${index}`),
-      }));
-      setRecommendations(withCacheIds);
+      const payload = (await res.json()) as RecommendationJobResponse;
+      if (payload.status === "DONE" && payload.recommendations) {
+        const timestamp = Date.now();
+        const normalized: Recommendation[] = [];
+        for (let i = 0; i < payload.recommendations.length; i++) {
+          const rec = payload.recommendations[i];
+          const cacheId = rec.cacheId
+            ? rec.cacheId
+            : rec.recipeId !== null
+              ? `stored-${rec.recipeId}`
+              : `ai-${timestamp}-${i}`;
+          normalized.push({ ...rec, cacheId });
+        }
+        setRecommendations(normalized);
+        stopPolling();
+        localStorage.removeItem(PENDING_JOB_KEY);
+        setActiveJobId(null);
+        sessionStorage.removeItem(PENDING_RECS_KEY);
+      } else if (payload.status === "ERROR") {
+        setRecommendationsError(payload.errorMessage ?? "No se pudieron obtener las recomendaciones");
+        stopPolling();
+        localStorage.removeItem(PENDING_JOB_KEY);
+        setActiveJobId(null);
+        sessionStorage.removeItem(PENDING_RECS_KEY);
+      }
     } catch (err: any) {
+      if (err?.name === "AbortError") {
+        return;
+      }
       setRecommendationsError(err.message ?? "No se pudieron obtener las recomendaciones");
+      stopPolling();
+      localStorage.removeItem(PENDING_JOB_KEY);
+      setActiveJobId(null);
+      sessionStorage.removeItem(PENDING_RECS_KEY);
     } finally {
       setLoadingRecommendations(false);
-      sessionStorage.removeItem("ai-recipes:pending-recs");
     }
-  }, [navigate]);
+  }, [navigate, setRecommendations]);
+
+  const startPolling = useCallback((jobId: string) => {
+    setActiveJobId(jobId);
+    localStorage.setItem(PENDING_JOB_KEY, jobId);
+    setLoadingRecommendations(true);
+    setRecommendationsError(null);
+    if (pollRef.current !== null) {
+      window.clearInterval(pollRef.current);
+    }
+    pollRef.current = window.setInterval(() => {
+      pollJobStatus(jobId).catch(() => undefined);
+    }, 2500);
+  }, [pollJobStatus]);
+
+  const requestRecommendationsJob = useCallback(async () => {
+    setRecommendationsError(null);
+    sessionStorage.setItem(PENDING_RECS_KEY, "true");
+    try {
+      const res = await fetch(makeApiUrl("/api/recommendations/jobs"), {
+        method: "POST",
+        credentials: "include",
+        keepalive: true,
+      });
+      if (res.status === 401) {
+        navigate("/login");
+        return;
+      }
+      if (!res.ok) {
+        throw new Error("No se pudo iniciar la generación de recetas");
+      }
+      const payload = (await res.json()) as RecommendationJobResponse;
+      if (payload.jobId) {
+        startPolling(payload.jobId);
+      }
+    } catch (err: any) {
+      setRecommendationsError(err.message ?? "No se pudieron obtener las recomendaciones");
+    }
+  }, [navigate, startPolling]);
 
   const loadInitialData = useCallback(async () => {
     setLoading(true);
@@ -142,11 +212,18 @@ export const PantryPage: React.FC = () => {
 
   useEffect(() => {
     loadInitialData();
-    // Si había una solicitud pendiente antes de refrescar, vuelve a lanzarla.
-    if (sessionStorage.getItem("ai-recipes:pending-recs") === "true") {
-      loadRecommendations().catch(() => undefined);
+    // Si había una solicitud pendiente antes de refrescar o navegar, vuelve a lanzarla.
+    const pendingJob = localStorage.getItem(PENDING_JOB_KEY);
+    if (pendingJob) {
+      startPolling(pendingJob);
+    } else if (sessionStorage.getItem(PENDING_RECS_KEY) === "true") {
+      requestRecommendationsJob().catch(() => undefined);
     }
-  }, [loadInitialData, loadRecommendations]);
+
+    return () => {
+      stopPolling();
+    };
+  }, [PENDING_JOB_KEY, PENDING_RECS_KEY, loadInitialData, requestRecommendationsJob, startPolling]);
 
   const handleLogout = useCallback(async () => {
     await fetch(makeApiUrl("/api/auth/logout"), {
@@ -321,8 +398,8 @@ export const PantryPage: React.FC = () => {
   );
 
   const handleRequestAI = useCallback(() => {
-    loadRecommendations().catch(() => undefined);
-  }, [loadRecommendations]);
+    requestRecommendationsJob().catch(() => undefined);
+  }, [requestRecommendationsJob]);
 
   return (
     <div className="pantry-page pantry-page--minimal">
