@@ -61,6 +61,7 @@ export const PantryPage: React.FC = () => {
   const PENDING_JOB_KEY = "ai-recipes:pending-job";
   const JOB_QUEUE_KEY = "ai-recipes:job-queue";
   const HISTORY_STORAGE_KEY = "ai-recipes:history-list";
+  const RECOMMENDATIONS_KEY = "ai-recipes:recommendations";
   const HISTORY_LIMIT = 25;
   const RECENT_LIMIT = 5;
   const HISTORY_ENTRIES_LIMIT = 10;
@@ -121,6 +122,26 @@ export const PantryPage: React.FC = () => {
     }
     const latest = recentRef.current.toArray();
     setRecentIngredients([...latest].reverse());
+  };
+
+  const clearUserScopedCaches = (currentUser: string | undefined) => {
+    localStorage.removeItem(RECOMMENDATIONS_KEY);
+    localStorage.removeItem(HISTORY_STORAGE_KEY);
+    localStorage.removeItem(PENDING_JOB_KEY);
+    localStorage.removeItem(PENDING_RECS_KEY);
+    localStorage.removeItem(JOB_QUEUE_KEY);
+    sessionStorage.removeItem(PENDING_RECS_KEY);
+    historyListRef.current.clear();
+    recentRef.current.clear();
+    historyRef.current = new Stack<PantryItem[]>();
+    jobQueueRef.current = new Queue<string>();
+    processingJobRef.current = null;
+    setRecommendations([]);
+    setRecentIngredients([]);
+    if (currentUser) {
+      localStorage.setItem("ai-recipes:user", currentUser);
+      sessionStorage.setItem("ai-recipes:user", currentUser);
+    }
   };
 
   const persistHistoryEntries = () => {
@@ -338,7 +359,17 @@ export const PantryPage: React.FC = () => {
       }
 
       const profileData = await profileRes.json();
-      setProfileName(profileData.username);
+      const backendUser: string | undefined = profileData.username;
+      const storedUser = localStorage.getItem("ai-recipes:user") ?? sessionStorage.getItem("ai-recipes:user");
+      if (storedUser && backendUser && storedUser !== backendUser) {
+        clearUserScopedCaches(backendUser);
+      } else {
+        if (backendUser) {
+          localStorage.setItem("ai-recipes:user", backendUser);
+          sessionStorage.setItem("ai-recipes:user", backendUser);
+        }
+      }
+      setProfileName(backendUser);
 
       const pantryData: PantryItem[] = await pantryRes.json();
       setItems(pantryData);
