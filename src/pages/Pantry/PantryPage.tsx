@@ -15,6 +15,7 @@ import type {
 } from "../../types/pantry";
 import { useRecommendationStore } from "../../context/RecommendationContext";
 import { Queue } from "../../utils/dataStructures";
+import { Stack } from "../../utils/dataStructures";
 
 const MAX_TITLE_LENGTH = 150;
 const MAX_DESCRIPTION_LENGTH = 500;
@@ -64,11 +65,45 @@ export const PantryPage: React.FC = () => {
   const pollRef = useRef<number | null>(null);
   const jobQueueRef = useRef(new Queue<string>());
   const processingJobRef = useRef<string | null>(null);
+  const undoRef = useRef(new Stack<PantryItem[]>());
+  const redoRef = useRef(new Stack<PantryItem[]>());
 
   const sortedItems = useMemo(
     () => items.slice().sort((a, b) => a.ingredientName.localeCompare(b.ingredientName)),
     [items]
   );
+
+  const cloneItems = useCallback(
+    (source: PantryItem[]) =>
+      source.map((item) => ({
+        ...item,
+        category: { ...item.category },
+      })),
+    []
+  );
+
+  const pushHistory = useCallback(() => {
+    undoRef.current.push(cloneItems(items));
+    redoRef.current = new Stack<PantryItem[]>();
+  }, [items, cloneItems]);
+
+  const handleUndo = useCallback(() => {
+    const previous = undoRef.current.pop();
+    if (!previous) {
+      return;
+    }
+    redoRef.current.push(cloneItems(items));
+    setItems(previous);
+  }, [items, cloneItems]);
+
+  const handleRedo = useCallback(() => {
+    const next = redoRef.current.pop();
+    if (!next) {
+      return;
+    }
+    undoRef.current.push(cloneItems(items));
+    setItems(next);
+  }, [items, cloneItems]);
 
   const stopPolling = () => {
     if (pollRef.current !== null) {
@@ -281,9 +316,9 @@ export const PantryPage: React.FC = () => {
     async (values: PantryFormValues) => {
       setProcessing(true);
       setPantryError(null);
-      try {
-        const response = await fetch(makeApiUrl("/api/pantry"), {
-          method: "POST",
+    try {
+      const response = await fetch(makeApiUrl("/api/pantry"), {
+        method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -306,6 +341,7 @@ export const PantryPage: React.FC = () => {
         }
 
         const saved: PantryItem = await response.json();
+        pushHistory();
         setItems((prev) => {
           const filtered = prev.filter((item) => item.ingredientId !== saved.ingredientId);
           return [...filtered, saved];
@@ -340,6 +376,7 @@ export const PantryPage: React.FC = () => {
           throw new Error(payload?.message ?? "No se pudo eliminar el ingrediente");
         }
 
+        pushHistory();
         setItems((prev) => prev.filter((item) => item.ingredientId !== ingredientId));
         resetForm();
       } catch (err: any) {
@@ -466,7 +503,27 @@ export const PantryPage: React.FC = () => {
               </section>
 
               <section className="pantry-card pantry-card--list">
-                <h2 className="pantry-card__title">Mi Despensa</h2>
+                <div className="pantry-card__title" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", flexWrap: "wrap" }}>
+                  <span>Mi Despensa</span>
+                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <button
+                      type="button"
+                      className="pantry-chip-button"
+                      onClick={handleUndo}
+                      disabled={undoRef.current.isEmpty()}
+                    >
+                      Deshacer
+                    </button>
+                    <button
+                      type="button"
+                      className="pantry-chip-button"
+                      onClick={handleRedo}
+                      disabled={redoRef.current.isEmpty()}
+                    >
+                      Rehacer
+                    </button>
+                  </div>
+                </div>
                 {pantryError && <div className="pantry-error">{pantryError}</div>}
                 <PantryList
                   items={sortedItems}
