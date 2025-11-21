@@ -1,6 +1,6 @@
-import "../../styles/Pantry.css";
+﻿import "../../styles/Pantry.css";
 import { makeApiUrl } from "../../config/api";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { HomeNavbar } from "../../components/home/HomeNavbar";
 import { PantryForm } from "../../components/pantry/PantryForm";
@@ -14,6 +14,7 @@ import type {
   RecommendationJobResponse,
 } from "../../types/pantry";
 import { useRecommendationStore } from "../../context/RecommendationContext";
+import { Queue } from "../../utils/dataStructures";
 
 const MAX_TITLE_LENGTH = 150;
 const MAX_DESCRIPTION_LENGTH = 500;
@@ -41,9 +42,6 @@ const EMPTY_FORM: PantryFormValues = {
   categoryId: null,
 };
 
-/**
- * Pagina para gestionar la despensa virtual del usuario y solicitar recetas a la IA.
- */
 export const PantryPage: React.FC = () => {
   const navigate = useNavigate();
   const storedUsername =
@@ -61,7 +59,11 @@ export const PantryPage: React.FC = () => {
 
   const PENDING_RECS_KEY = "ai-recipes:pending-recs";
   const PENDING_JOB_KEY = "ai-recipes:pending-job";
-  const pollRef = React.useRef<number | null>(null);
+  const JOB_QUEUE_KEY = "ai-recipes:job-queue";
+
+  const pollRef = useRef<number | null>(null);
+  const jobQueueRef = useRef(new Queue<string>());
+  const processingJobRef = useRef<string | null>(null);
 
   const sortedItems = useMemo(
     () => items.slice().sort((a, b) => a.ingredientName.localeCompare(b.ingredientName)),
@@ -72,6 +74,15 @@ export const PantryPage: React.FC = () => {
     if (pollRef.current !== null) {
       window.clearInterval(pollRef.current);
       pollRef.current = null;
+    }
+  };
+
+  const persistQueue = () => {
+    const array = jobQueueRef.current.toArray();
+    if (array.length === 0) {
+      localStorage.removeItem(JOB_QUEUE_KEY);
+    } else {
+      localStorage.setItem(JOB_QUEUE_KEY, JSON.stringify(array));
     }
   };
 
@@ -88,6 +99,8 @@ export const PantryPage: React.FC = () => {
       if (res.status === 404) {
         stopPolling();
         localStorage.removeItem(PENDING_JOB_KEY);
+        processingJobRef.current = null;
+        persistQueue();
         return;
       }
       const payload = (await res.json()) as RecommendationJobResponse;
@@ -107,11 +120,15 @@ export const PantryPage: React.FC = () => {
         stopPolling();
         localStorage.removeItem(PENDING_JOB_KEY);
         sessionStorage.removeItem(PENDING_RECS_KEY);
+        processingJobRef.current = null;
+        persistQueue();
       } else if (payload.status === "ERROR") {
         setRecommendationsError(payload.errorMessage ?? "No se pudieron obtener las recomendaciones");
         stopPolling();
         localStorage.removeItem(PENDING_JOB_KEY);
         sessionStorage.removeItem(PENDING_RECS_KEY);
+        processingJobRef.current = null;
+        persistQueue();
       }
     } catch (err: any) {
       if (err?.name === "AbortError") {
@@ -121,13 +138,17 @@ export const PantryPage: React.FC = () => {
       stopPolling();
       localStorage.removeItem(PENDING_JOB_KEY);
       sessionStorage.removeItem(PENDING_RECS_KEY);
+      processingJobRef.current = null;
+      persistQueue();
     } finally {
       setLoadingRecommendations(false);
     }
-  }, [navigate, setRecommendations]);
+  }, [navigate, setRecommendations, PENDING_RECS_KEY, PENDING_JOB_KEY]);
 
   const startPolling = useCallback((jobId: string) => {
+    processingJobRef.current = jobId;
     localStorage.setItem(PENDING_JOB_KEY, jobId);
+    sessionStorage.setItem(PENDING_RECS_KEY, "true");
     setLoadingRecommendations(true);
     setRecommendationsError(null);
     if (pollRef.current !== null) {
@@ -136,7 +157,19 @@ export const PantryPage: React.FC = () => {
     pollRef.current = window.setInterval(() => {
       pollJobStatus(jobId).catch(() => undefined);
     }, 2500);
-  }, [pollJobStatus]);
+  }, [pollJobStatus, PENDING_RECS_KEY, PENDING_JOB_KEY]);
+
+  const processNextJob = useCallback(() => {
+    if (processingJobRef.current) {
+      return;
+    }
+    const nextId = jobQueueRef.current.dequeue();
+    persistQueue();
+    if (!nextId) {
+      return;
+    }
+    startPolling(nextId);
+  }, [startPolling]);
 
   const requestRecommendationsJob = useCallback(async () => {
     setRecommendationsError(null);
@@ -156,12 +189,14 @@ export const PantryPage: React.FC = () => {
       }
       const payload = (await res.json()) as RecommendationJobResponse;
       if (payload.jobId) {
-        startPolling(payload.jobId);
+        jobQueueRef.current.enqueue(payload.jobId);
+        persistQueue();
+        processNextJob();
       }
     } catch (err: any) {
       setRecommendationsError(err.message ?? "No se pudieron obtener las recomendaciones");
     }
-  }, [navigate, startPolling]);
+  }, [navigate, processNextJob, PENDING_RECS_KEY]);
 
   const loadInitialData = useCallback(async () => {
     setLoading(true);
@@ -188,13 +223,13 @@ export const PantryPage: React.FC = () => {
       const pantryData: PantryItem[] = await pantryRes.json();
       setItems(pantryData);
 
-        const ingredientsData = await ingredientsRes.json();
-        const options: IngredientOption[] = ingredientsData.map((ingredient: any) => ({
-          id: ingredient.id,
-          name: ingredient.name ?? ingredient.ingredientName ?? "Ingrediente",
-          categoryName: ingredient.category?.name ?? ingredient.category?.categoryName ?? "General",
-        }));
-        setIngredients(options);
+      const ingredientsData = await ingredientsRes.json();
+      const options: IngredientOption[] = ingredientsData.map((ingredient: any) => ({
+        id: ingredient.id,
+        name: ingredient.name ?? ingredient.ingredientName ?? "Ingrediente",
+        categoryName: ingredient.category?.name ?? ingredient.category?.categoryName ?? "General",
+      }));
+      setIngredients(options);
     } catch (err: any) {
       setPantryError(err.message ?? "Ocurrio un error al consultar la despensa");
     } finally {
@@ -204,18 +239,30 @@ export const PantryPage: React.FC = () => {
 
   useEffect(() => {
     loadInitialData();
-    // Si había una solicitud pendiente antes de refrescar o navegar, vuelve a lanzarla.
     const pendingJob = localStorage.getItem(PENDING_JOB_KEY);
+    const rawQueue = localStorage.getItem(JOB_QUEUE_KEY);
+    if (rawQueue) {
+      try {
+        const ids: string[] = JSON.parse(rawQueue);
+        for (let i = 0; i < ids.length; i++) {
+          jobQueueRef.current.enqueue(ids[i]);
+        }
+      } catch {
+        /* ignore */
+      }
+    }
     if (pendingJob) {
-      startPolling(pendingJob);
+      jobQueueRef.current.enqueue(pendingJob);
     } else if (sessionStorage.getItem(PENDING_RECS_KEY) === "true") {
       requestRecommendationsJob().catch(() => undefined);
     }
+    persistQueue();
+    processNextJob();
 
     return () => {
       stopPolling();
     };
-  }, [PENDING_JOB_KEY, PENDING_RECS_KEY, loadInitialData, requestRecommendationsJob, startPolling]);
+  }, [PENDING_JOB_KEY, PENDING_RECS_KEY, JOB_QUEUE_KEY, loadInitialData, requestRecommendationsJob, processNextJob]);
 
   const handleLogout = useCallback(async () => {
     await fetch(makeApiUrl("/api/auth/logout"), {
@@ -357,8 +404,8 @@ export const PantryPage: React.FC = () => {
         }
 
         if (!response.ok) {
-          const payload = await response.json().catch(() => null);
-          throw new Error(payload?.message ?? "No se pudo guardar la receta sugerida");
+          const payloadRes = await response.json().catch(() => null);
+          throw new Error(payloadRes?.message ?? "No se pudo guardar la receta sugerida");
         }
 
         const savedRecipe = await response.json();
