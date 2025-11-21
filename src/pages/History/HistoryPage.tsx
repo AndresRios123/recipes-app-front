@@ -30,7 +30,7 @@ const sanitizeText = (text: string | null | undefined, maxLength: number | null 
 export const HistoryPage: React.FC = () => {
   const navigate = useNavigate();
   const storedUsername = localStorage.getItem("ai-recipes:user") ?? sessionStorage.getItem("ai-recipes:user");
-  const [username, setUsername] = useState<string | undefined>(storedUsername ?? undefined);
+  const username = storedUsername ?? undefined;
   const [entries, setEntries] = useState<HistoryEntry[]>([]);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
