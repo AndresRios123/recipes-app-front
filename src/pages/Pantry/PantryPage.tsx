@@ -14,7 +14,7 @@ import type {
   RecommendationJobResponse,
 } from "../../types/pantry";
 import { useRecommendationStore } from "../../context/RecommendationContext";
-import { Queue } from "../../utils/dataStructures";
+import { Queue, Stack } from "../../utils/dataStructures";
 
 const MAX_TITLE_LENGTH = 150;
 const MAX_DESCRIPTION_LENGTH = 500;
@@ -60,15 +60,43 @@ export const PantryPage: React.FC = () => {
   const PENDING_RECS_KEY = "ai-recipes:pending-recs";
   const PENDING_JOB_KEY = "ai-recipes:pending-job";
   const JOB_QUEUE_KEY = "ai-recipes:job-queue";
+  const HISTORY_LIMIT = 25;
 
   const pollRef = useRef<number | null>(null);
   const jobQueueRef = useRef(new Queue<string>());
   const processingJobRef = useRef<string | null>(null);
+  const historyRef = useRef(new Stack<PantryItem[]>());
 
   const sortedItems = useMemo(
     () => items.slice().sort((a, b) => a.ingredientName.localeCompare(b.ingredientName)),
     [items]
   );
+
+  const copyPantry = (list: PantryItem[]): PantryItem[] =>
+    list.map((item) => ({
+      ...item,
+      category: { ...item.category },
+    }));
+
+  const resetForm = useCallback(() => setFormValues(EMPTY_FORM), []);
+
+  const pushHistory = (snapshot: PantryItem[]) => {
+    historyRef.current.push(copyPantry(snapshot));
+    // Mantiene la pila acotada para no consumir demasiada memoria.
+    while (historyRef.current.size() > HISTORY_LIMIT) {
+      historyRef.current.pop();
+    }
+  };
+
+  const handleUndo = useCallback(() => {
+    const previous = historyRef.current.pop();
+    if (!previous) {
+      return;
+    }
+    setPantryError(null);
+    setItems(previous);
+    resetForm();
+  }, [resetForm]);
 
   const stopPolling = () => {
     if (pollRef.current !== null) {
@@ -201,6 +229,7 @@ export const PantryPage: React.FC = () => {
   const loadInitialData = useCallback(async () => {
     setLoading(true);
     setPantryError(null);
+    historyRef.current = new Stack<PantryItem[]>();
     try {
       const [profileRes, pantryRes, ingredientsRes] = await Promise.all([
         fetch(makeApiUrl("/api/auth/profile"), { credentials: "include" }),
@@ -275,8 +304,6 @@ export const PantryPage: React.FC = () => {
     navigate("/login");
   }, [navigate]);
 
-  const resetForm = useCallback(() => setFormValues(EMPTY_FORM), []);
-
   const handleSubmit = useCallback(
     async (values: PantryFormValues) => {
       setProcessing(true);
@@ -308,12 +335,13 @@ export const PantryPage: React.FC = () => {
         const saved: PantryItem = await response.json();
         setItems((prev) => {
           const filtered = prev.filter((item) => item.ingredientId !== saved.ingredientId);
+          pushHistory(prev);
           return [...filtered, saved];
         });
-        resetForm();
-      } catch (err: any) {
-        setPantryError(err.message ?? "No se pudo guardar el ingrediente");
-      } finally {
+    resetForm();
+  } catch (err: any) {
+    setPantryError(err.message ?? "No se pudo guardar el ingrediente");
+  } finally {
         setProcessing(false);
       }
     },
@@ -340,7 +368,10 @@ export const PantryPage: React.FC = () => {
           throw new Error(payload?.message ?? "No se pudo eliminar el ingrediente");
         }
 
-        setItems((prev) => prev.filter((item) => item.ingredientId !== ingredientId));
+        setItems((prev) => {
+          pushHistory(prev);
+          return prev.filter((item) => item.ingredientId !== ingredientId);
+        });
         resetForm();
       } catch (err: any) {
         setPantryError(err.message ?? "No se pudo eliminar el ingrediente");
@@ -466,7 +497,18 @@ export const PantryPage: React.FC = () => {
               </section>
 
               <section className="pantry-card pantry-card--list">
-                <h2 className="pantry-card__title">Mi Despensa</h2>
+                <div className="pantry-card__header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.75rem" }}>
+                  <h2 className="pantry-card__title">Mi Despensa</h2>
+                  <button
+                    type="button"
+                    className="pantry-chip-button"
+                    onClick={handleUndo}
+                    disabled={historyRef.current.isEmpty() || processing}
+                    title="Deshacer último cambio"
+                  >
+                    Deshacer
+                  </button>
+                </div>
                 {pantryError && <div className="pantry-error">{pantryError}</div>}
                 <PantryList
                   items={sortedItems}
