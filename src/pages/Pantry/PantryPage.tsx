@@ -57,9 +57,6 @@ export const PantryPage: React.FC = () => {
   const [pantryError, setPantryError] = useState<string | null>(null);
   const [recommendationsError, setRecommendationsError] = useState<string | null>(null);
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
-  const [activeJobId, setActiveJobId] = useState<string | null>(
-    localStorage.getItem("ai-recipes:pending-job")
-  );
   const { recommendations, setRecommendations, updateRecommendation } = useRecommendationStore();
 
   const PENDING_RECS_KEY = "ai-recipes:pending-recs";
@@ -91,7 +88,6 @@ export const PantryPage: React.FC = () => {
       if (res.status === 404) {
         stopPolling();
         localStorage.removeItem(PENDING_JOB_KEY);
-        setActiveJobId(null);
         return;
       }
       const payload = (await res.json()) as RecommendationJobResponse;
@@ -110,13 +106,11 @@ export const PantryPage: React.FC = () => {
         setRecommendations(normalized);
         stopPolling();
         localStorage.removeItem(PENDING_JOB_KEY);
-        setActiveJobId(null);
         sessionStorage.removeItem(PENDING_RECS_KEY);
       } else if (payload.status === "ERROR") {
         setRecommendationsError(payload.errorMessage ?? "No se pudieron obtener las recomendaciones");
         stopPolling();
         localStorage.removeItem(PENDING_JOB_KEY);
-        setActiveJobId(null);
         sessionStorage.removeItem(PENDING_RECS_KEY);
       }
     } catch (err: any) {
@@ -126,7 +120,6 @@ export const PantryPage: React.FC = () => {
       setRecommendationsError(err.message ?? "No se pudieron obtener las recomendaciones");
       stopPolling();
       localStorage.removeItem(PENDING_JOB_KEY);
-      setActiveJobId(null);
       sessionStorage.removeItem(PENDING_RECS_KEY);
     } finally {
       setLoadingRecommendations(false);
@@ -134,7 +127,6 @@ export const PantryPage: React.FC = () => {
   }, [navigate, setRecommendations]);
 
   const startPolling = useCallback((jobId: string) => {
-    setActiveJobId(jobId);
     localStorage.setItem(PENDING_JOB_KEY, jobId);
     setLoadingRecommendations(true);
     setRecommendationsError(null);
