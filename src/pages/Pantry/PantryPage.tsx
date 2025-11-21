@@ -150,8 +150,12 @@ export const PantryPage: React.FC = () => {
     if (!items || items.length === 0) {
       return;
     }
+    const id =
+      typeof crypto !== "undefined" && "randomUUID" in crypto && typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : `hist-${Date.now()}`;
     const entry = {
-      id: crypto.randomUUID ? crypto.randomUUID() : `hist-${Date.now()}`,
+      id,
       createdAt: Date.now(),
       items,
     };
@@ -159,7 +163,11 @@ export const PantryPage: React.FC = () => {
     while (historyListRef.current.size() > HISTORY_ENTRIES_LIMIT) {
       historyListRef.current.removeAt(0);
     }
-    persistHistoryEntries();
+    try {
+      persistHistoryEntries();
+    } catch {
+      /* ignore storage errors */
+    }
   };
 
   const handleUndo = useCallback(() => {
