@@ -19,7 +19,6 @@ export const LoginForm: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   // Si ya hay una sesion activa, evita mostrar el login y redirige al home.
@@ -78,11 +77,8 @@ export const LoginForm: React.FC = () => {
       const welcomeMatch = data?.message?.match(/Bienvenido\s(.+)$/i);
       const usernameFromResponse = welcomeMatch?.[1] ?? formData.username;
 
-      if (rememberMe) {
-        localStorage.setItem("ai-recipes:user", usernameFromResponse);
-      } else {
-        sessionStorage.setItem("ai-recipes:user", usernameFromResponse);
-      }
+      // Siempre persistimos en sessionStorage para que la sesión termine al cerrar el navegador.
+      sessionStorage.setItem("ai-recipes:user", usernameFromResponse);
 
       setMessage(data?.message ?? "Inicio de sesion exitoso");
       navigate("/home", { replace: true });
@@ -159,20 +155,6 @@ export const LoginForm: React.FC = () => {
               </div>
             </div>
 
-            <div className="auth-extra">
-              <label className="auth-checkbox">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(event) => setRememberMe(event.target.checked)}
-                />
-                Recuerdame
-              </label>
-              <a className="auth-link" href="#">
-                Olvidaste tu contrasena?
-              </a>
-            </div>
-
             {error && <div className="auth-alert auth-alert--error">{error}</div>}
             {message && (
               <div className="auth-alert auth-alert--success">{message}</div>
@@ -183,18 +165,6 @@ export const LoginForm: React.FC = () => {
             </button>
           </form>
 
-          <div className="auth-divider">o</div>
-
-          <div className="auth-socials">
-            <button type="button" className="auth-social-btn">
-              <span className="auth-social-icon">G</span>
-              Continuar con Google
-            </button>
-            <button type="button" className="auth-social-btn">
-              <span className="auth-social-icon">f</span>
-              Continuar con Facebook
-            </button>
-          </div>
 
           <div className="auth-footer">
             Aun no tienes cuenta?{" "}

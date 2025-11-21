@@ -1,4 +1,4 @@
-import "../../styles/Home.css";
+﻿import "../../styles/Home.css";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { makeApiUrl } from "../../config/api";
@@ -212,4 +212,3 @@ export const HomePage: React.FC = () => {
     </div>
   );
 };
-

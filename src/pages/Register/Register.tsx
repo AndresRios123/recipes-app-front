@@ -168,19 +168,6 @@ export const RegisterForm: React.FC = () => {
             </button>
           </form>
 
-          <div className="auth-divider">o</div>
-
-          <div className="auth-socials">
-            <button type="button" className="auth-social-btn">
-              <span className="auth-social-icon">🟦</span>
-              Registrarse con Google
-            </button>
-            <button type="button" className="auth-social-btn">
-              <span className="auth-social-icon">ⓕ</span>
-              Registrarse con Facebook
-            </button>
-          </div>
-
           <div className="auth-footer">
             ¿Ya tienes cuenta?{" "}
             <Link className="auth-link" to="/login">
