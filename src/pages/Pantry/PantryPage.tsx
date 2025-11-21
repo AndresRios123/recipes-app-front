@@ -14,7 +14,7 @@ import type {
   RecommendationJobResponse,
 } from "../../types/pantry";
 import { useRecommendationStore } from "../../context/RecommendationContext";
-import { Queue, Stack } from "../../utils/dataStructures";
+import { Queue, Stack, SinglyLinkedList } from "../../utils/dataStructures";
 
 const MAX_TITLE_LENGTH = 150;
 const MAX_DESCRIPTION_LENGTH = 500;
@@ -60,12 +60,23 @@ export const PantryPage: React.FC = () => {
   const PENDING_RECS_KEY = "ai-recipes:pending-recs";
   const PENDING_JOB_KEY = "ai-recipes:pending-job";
   const JOB_QUEUE_KEY = "ai-recipes:job-queue";
+  const HISTORY_STORAGE_KEY = "ai-recipes:history-list";
   const HISTORY_LIMIT = 25;
+  const RECENT_LIMIT = 5;
+  const HISTORY_ENTRIES_LIMIT = 10;
 
   const pollRef = useRef<number | null>(null);
   const jobQueueRef = useRef(new Queue<string>());
   const processingJobRef = useRef<string | null>(null);
   const historyRef = useRef(new Stack<PantryItem[]>());
+  const recentRef = useRef(new SinglyLinkedList<string>());
+  const historyListRef = useRef(
+    new SinglyLinkedList<{
+      id: string;
+      createdAt: number;
+      items: Recommendation[];
+    }>()
+  );
 
   const sortedItems = useMemo(
     () => items.slice().sort((a, b) => a.ingredientName.localeCompare(b.ingredientName)),
@@ -79,6 +90,7 @@ export const PantryPage: React.FC = () => {
     }));
 
   const resetForm = useCallback(() => setFormValues(EMPTY_FORM), []);
+  const [recentIngredients, setRecentIngredients] = useState<string[]>([]);
 
   const pushHistory = (snapshot: PantryItem[]) => {
     historyRef.current.push(copyPantry(snapshot));
@@ -86,6 +98,68 @@ export const PantryPage: React.FC = () => {
     while (historyRef.current.size() > HISTORY_LIMIT) {
       historyRef.current.pop();
     }
+  };
+
+  const pushRecentIngredient = (name: string) => {
+    const normalized = name.trim();
+    if (!normalized) {
+      return;
+    }
+    recentRef.current.append(normalized);
+    if (recentRef.current.size() > RECENT_LIMIT) {
+      recentRef.current.removeAt(0);
+    }
+    const latest = recentRef.current.toArray();
+    setRecentIngredients([...latest].reverse());
+  };
+
+  const hydrateRecents = (pantry: PantryItem[]) => {
+    recentRef.current.clear();
+    const lastOnes = pantry.slice(-RECENT_LIMIT);
+    for (let i = 0; i < lastOnes.length; i++) {
+      recentRef.current.append(lastOnes[i].ingredientName);
+    }
+    const latest = recentRef.current.toArray();
+    setRecentIngredients([...latest].reverse());
+  };
+
+  const persistHistoryEntries = () => {
+    const arr = historyListRef.current.toArray();
+    localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(arr));
+  };
+
+  const hydrateHistory = () => {
+    historyListRef.current.clear();
+    const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
+    if (!raw) {
+      return;
+    }
+    try {
+      const parsed = JSON.parse(raw) as Array<{
+        id: string;
+        createdAt: number;
+        items: Recommendation[];
+      }>;
+      parsed.forEach((entry) => historyListRef.current.append(entry));
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const pushHistoryEntry = (items: Recommendation[]) => {
+    if (!items || items.length === 0) {
+      return;
+    }
+    const entry = {
+      id: crypto.randomUUID ? crypto.randomUUID() : `hist-${Date.now()}`,
+      createdAt: Date.now(),
+      items,
+    };
+    historyListRef.current.append(entry);
+    while (historyListRef.current.size() > HISTORY_ENTRIES_LIMIT) {
+      historyListRef.current.removeAt(0);
+    }
+    persistHistoryEntries();
   };
 
   const handleUndo = useCallback(() => {
@@ -145,6 +219,7 @@ export const PantryPage: React.FC = () => {
           normalized.push({ ...rec, cacheId });
         }
         setRecommendations(normalized);
+        pushHistoryEntry(normalized);
         stopPolling();
         localStorage.removeItem(PENDING_JOB_KEY);
         sessionStorage.removeItem(PENDING_RECS_KEY);
@@ -230,6 +305,13 @@ export const PantryPage: React.FC = () => {
     setLoading(true);
     setPantryError(null);
     historyRef.current = new Stack<PantryItem[]>();
+    recentRef.current = new SinglyLinkedList<string>();
+    historyListRef.current = new SinglyLinkedList<{
+      id: string;
+      createdAt: number;
+      items: Recommendation[];
+    }>();
+    hydrateHistory();
     try {
       const [profileRes, pantryRes, ingredientsRes] = await Promise.all([
         fetch(makeApiUrl("/api/auth/profile"), { credentials: "include" }),
@@ -251,6 +333,7 @@ export const PantryPage: React.FC = () => {
 
       const pantryData: PantryItem[] = await pantryRes.json();
       setItems(pantryData);
+      hydrateRecents(pantryData);
 
       const ingredientsData = await ingredientsRes.json();
       const options: IngredientOption[] = ingredientsData.map((ingredient: any) => ({
@@ -336,12 +419,14 @@ export const PantryPage: React.FC = () => {
         setItems((prev) => {
           const filtered = prev.filter((item) => item.ingredientId !== saved.ingredientId);
           pushHistory(prev);
-          return [...filtered, saved];
+          const updated = [...filtered, saved];
+          pushRecentIngredient(saved.ingredientName);
+          return updated;
         });
-    resetForm();
-  } catch (err: any) {
-    setPantryError(err.message ?? "No se pudo guardar el ingrediente");
-  } finally {
+        resetForm();
+      } catch (err: any) {
+        setPantryError(err.message ?? "No se pudo guardar el ingrediente");
+      } finally {
         setProcessing(false);
       }
     },
@@ -516,6 +601,18 @@ export const PantryPage: React.FC = () => {
                   onDelete={handleDelete}
                   isProcessing={processing}
                 />
+                {recentIngredients.length > 0 && (
+                  <div className="pantry-recent" style={{ marginTop: "1rem" }}>
+                    <h3 className="pantry-card__subtitle">Recientes</h3>
+                    <ul className="pantry-recent__list">
+                      {recentIngredients.map((name, idx) => (
+                        <li key={`${name}-${idx}`} className="pantry-recent__item">
+                          {name}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </section>
             </div>
 
