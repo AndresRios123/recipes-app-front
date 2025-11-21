@@ -275,6 +275,8 @@
   border-radius: 18px;
   box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
   padding: 1.75rem;
+  display: grid;
+  gap: 1.1rem;
 }
 
 .profile-card h2 {
@@ -283,11 +285,25 @@
 }
 
 .profile-card form {
-  margin-top: 0.5rem;
+  display: grid;
+  gap: 1rem;
+  max-width: 520px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.profile-card .auth-field {
+  margin: 0;
+}
+
+.profile-card .auth-input {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .profile-card .auth-submit {
   width: 100%;
+  margin-top: 0.5rem;
 }
 
 @media (max-width: 900px) {
