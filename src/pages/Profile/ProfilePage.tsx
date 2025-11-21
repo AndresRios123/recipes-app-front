@@ -183,12 +183,6 @@ export const ProfilePage: React.FC = () => {
                     required
                   />
                 </div>
-                <div className="auth-field">
-                  <label className="auth-label">ID</label>
-                  <div className="auth-input" style={{ cursor: "default" }}>
-                    {profile.id}
-                  </div>
-                </div>
                 {profileMessage && (
                   <div className="auth-alert auth-alert--success">{profileMessage}</div>
                 )}
