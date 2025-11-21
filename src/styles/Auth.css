@@ -25,9 +25,13 @@
 }
 
 .auth-brand {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #0f172a;
+  display: inline-block;
+  font-size: 2.6rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #2563eb 0%, #fb923c 50%, #f97316 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 0.02em;
 }
 
 .auth-title {
@@ -329,6 +333,10 @@
 @media (max-width: 600px) {
   .auth-main {
     padding: 2rem 1.5rem;
+  }
+
+  .auth-brand {
+    font-size: 2.2rem;
   }
 
   .auth-title {
