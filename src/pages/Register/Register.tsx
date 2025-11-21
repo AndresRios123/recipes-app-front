@@ -78,7 +78,7 @@ export const RegisterForm: React.FC = () => {
 
         <div className="auth-main">
           <header>
-            <div className="auth-brand">AI Recipes</div>
+            <div className="auth-brand">Saborify</div>
             <h1 className="auth-title">Crear cuenta</h1>
             <p className="auth-subtitle">
               Personaliza tu despensa virtual y recibe recomendaciones inteligentes.

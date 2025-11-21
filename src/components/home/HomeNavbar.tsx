@@ -13,7 +13,7 @@ export const HomeNavbar: React.FC<HomeNavbarProps> = ({ username, onLogout }) =>
   return (
     <nav className="home-navbar">
       <div className="home-navbar__inner">
-        <span className="home-navbar__brand">AI Recipes</span>
+        <span className="home-navbar__brand">Saborify</span>
         <div className="home-navbar__menu-wrapper">
           <div className="home-navbar__menu">
             <Link to="/home">Inicio</Link>

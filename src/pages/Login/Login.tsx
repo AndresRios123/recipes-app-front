@@ -95,7 +95,7 @@ export const LoginForm: React.FC = () => {
       <div className="auth-card">
         <div className="auth-main">
           <header>
-            <div className="auth-brand">AI Recipes</div>
+            <div className="auth-brand">Saborify</div>
             <h1 className="auth-title">Iniciar sesion</h1>
             <p className="auth-subtitle">
               Descubre que puedes cocinar con lo que ya tienes en casa.
