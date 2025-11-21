@@ -359,23 +359,14 @@ export const PantryPage: React.FC = () => {
 
   useEffect(() => {
     loadInitialData();
-    const pendingJob = localStorage.getItem(PENDING_JOB_KEY);
-    const rawQueue = localStorage.getItem(JOB_QUEUE_KEY);
-    if (rawQueue) {
-      try {
-        const ids: string[] = JSON.parse(rawQueue);
-        for (let i = 0; i < ids.length; i++) {
-          jobQueueRef.current.enqueue(ids[i]);
-        }
-      } catch {
-        /* ignore */
-      }
-    }
-    if (pendingJob) {
-      jobQueueRef.current.enqueue(pendingJob);
-    }
-    persistQueue();
-    processNextJob();
+    // Limpia cualquier estado pendiente para evitar que se disparen trabajos de IA al entrar.
+    localStorage.removeItem(JOB_QUEUE_KEY);
+    localStorage.removeItem(PENDING_JOB_KEY);
+    sessionStorage.removeItem(PENDING_RECS_KEY);
+    jobQueueRef.current = new Queue<string>();
+    processingJobRef.current = null;
+    stopPolling();
+    setLoadingRecommendations(false);
 
     return () => {
       stopPolling();
